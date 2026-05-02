@@ -19,7 +19,10 @@ import {
   Linkedin,
   Github,
   ArrowRight,
+<<<<<<< HEAD
   Users,
+=======
+>>>>>>> f3b66482f7774c42cff6be10355f1bcf487f2dff
 } from "lucide-react"
 import { Sidebar } from "@/components/dashboard/sidebar"
 import { getState, type AppState } from "@/lib/store"
@@ -320,9 +323,14 @@ export default function LandingPage() {
                   </Button>
                 </Link>
               </div>
+<<<<<<< HEAD
             </div>
 
             {/* Right - Hero Image */}
+=======
+
+              {/* Right - Hero Image */}
+>>>>>>> f3b66482f7774c42cff6be10355f1bcf487f2dff
             <div className="flex items-center justify-center">
               <div className="relative h-80 w-80 lg:h-96 lg:w-96">
                 {/* Earth Image */}

@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { Sidebar } from "@/components/dashboard/sidebar"
 import { Button } from "@/components/ui/button"
+<<<<<<< HEAD
 import { ArrowLeft, Loader2 } from "lucide-react"
 import Link from "next/link"
 import { EcoActionLogger } from "@/components/eco-action-logger"
@@ -20,6 +21,25 @@ export default function LogActionPage() {
   }
 
   if (isLoading) {
+=======
+import { ArrowLeft } from "lucide-react"
+import Link from "next/link"
+import { getState, subscribeToStateChanges, type AppState } from "@/lib/store"
+import { EcoActionLogger } from "@/components/eco-action-logger"
+
+export default function LogActionPage() {
+  const [state, setState] = useState<AppState | null>(null)
+
+  useEffect(() => {
+    setState(getState())
+    const unsubscribe = subscribeToStateChanges((newState) => {
+      setState(newState)
+    })
+    return unsubscribe
+  }, [])
+
+  if (!state) {
+>>>>>>> f3b66482f7774c42cff6be10355f1bcf487f2dff
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
         <div className="flex items-center gap-2 text-muted-foreground">
@@ -67,6 +87,7 @@ export default function LogActionPage() {
               <span className="text-sm text-muted-foreground">Actions Logged:</span>
               <span className="font-bold text-primary">{stats.actionCount}</span>
             </div>
+<<<<<<< HEAD
             {isSyncing && (
               <div className="flex items-center gap-2 ml-auto">
                 <Loader2 className="h-4 w-4 animate-spin text-primary" />
@@ -77,6 +98,16 @@ export default function LogActionPage() {
 
           {/* Eco Action Logger Component */}
           <EcoActionLogger onActionLogged={handleActionLogged} />
+=======
+          </div>
+
+          {/* Eco Action Logger Component */}
+          <EcoActionLogger 
+            onActionLogged={(newState) => {
+              setState(newState)
+            }} 
+          />
+>>>>>>> f3b66482f7774c42cff6be10355f1bcf487f2dff
         </div>
       </main>
     </div>

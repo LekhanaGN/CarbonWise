@@ -46,6 +46,25 @@ export function Sidebar({ user }: SidebarProps) {
   const [isMobileOpen, setIsMobileOpen] = useState(false)
   const [isDesktopOpen, setIsDesktopOpen] = useState(true)
   const [mounted, setMounted] = useState(false)
+<<<<<<< HEAD
+=======
+
+  // Load sidebar state from localStorage on mount
+  useEffect(() => {
+    setMounted(true)
+    const savedState = localStorage.getItem("sidebarOpen")
+    if (savedState !== null) {
+      setIsDesktopOpen(JSON.parse(savedState))
+    }
+  }, [])
+
+  // Save sidebar state to localStorage when it changes
+  useEffect(() => {
+    if (mounted) {
+      localStorage.setItem("sidebarOpen", JSON.stringify(isDesktopOpen))
+    }
+  }, [isDesktopOpen, mounted])
+>>>>>>> f3b66482f7774c42cff6be10355f1bcf487f2dff
 
   // Load sidebar state from localStorage on mount
   useEffect(() => {
@@ -197,7 +216,11 @@ export function Sidebar({ user }: SidebarProps) {
       {/* Desktop Sidebar - Collapsible */}
       <aside
         className={cn(
+<<<<<<< HEAD
           "sticky top-0 hidden h-screen flex-col border-r border-sidebar-border bg-sidebar transition-all duration-300 ease-in-out lg:flex",
+=======
+          "hidden h-screen flex-col border-r border-sidebar-border bg-sidebar transition-all duration-300 ease-in-out lg:flex",
+>>>>>>> f3b66482f7774c42cff6be10355f1bcf487f2dff
           isDesktopOpen ? "w-64" : "w-20"
         )}
       >
