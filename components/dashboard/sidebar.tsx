@@ -2,7 +2,7 @@
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import { LayoutDashboard, ClipboardList, Gift, LogOut, Leaf } from "lucide-react"
+import { LayoutDashboard, ClipboardList, Gift, LogOut, Leaf, Chrome } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 
@@ -10,6 +10,7 @@ const navItems = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/" },
   { icon: ClipboardList, label: "Log Action", href: "/log-action" },
   { icon: Gift, label: "Rewards", href: "/rewards" },
+  { icon: Chrome, label: "Extension", href: "/extension" },
 ]
 
 interface SidebarProps {
