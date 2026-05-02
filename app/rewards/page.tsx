@@ -1,20 +1,13 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Sidebar } from "@/components/dashboard/sidebar"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { Gift, Lock, CheckCircle, ShoppingBag, Coffee, Leaf, Bike, TreePine } from "lucide-react"
-
-// Initial empty user state - will come from auth/database
-const initialUser = {
-  name: "",
-  email: "",
-  points: 0,
-  co2Saved: 0,
-}
+import { getState, subscribeToStateChanges, type AppState } from "@/lib/store"
 
 // Available rewards - static data for reward types
 const availableRewards = [
@@ -68,14 +61,30 @@ interface ClaimedReward {
 }
 
 export default function RewardsPage() {
-  const [user] = useState(initialUser)
+  const [state, setState] = useState<AppState | null>(null)
   const [claimedRewards] = useState<ClaimedReward[]>([])
   
-  const userPoints = user.points
+  useEffect(() => {
+    setState(getState())
+    const unsubscribe = subscribeToStateChanges((newState) => {
+      setState(newState)
+    })
+    return unsubscribe
+  }, [])
+
+  if (!state) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <div className="text-muted-foreground">Loading...</div>
+      </div>
+    )
+  }
+
+  const userPoints = state.user.points
 
   return (
     <div className="flex min-h-screen bg-background">
-      <Sidebar user={user} />
+      <Sidebar user={state.user} />
 
       <main className="flex-1 overflow-y-auto p-6">
         <div className="mx-auto max-w-4xl space-y-6">

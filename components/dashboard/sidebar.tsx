@@ -69,7 +69,7 @@ export function Sidebar({ user }: SidebarProps) {
           </div>
           <div className="flex justify-between text-sm">
             <span className="text-muted-foreground">CO2 Saved</span>
-            <span className="font-medium text-primary">{user.co2Saved} kg</span>
+            <span className="font-medium text-primary">{user.co2Saved.toFixed(1)} kg</span>
           </div>
         </div>
       </div>
@@ -78,11 +78,11 @@ export function Sidebar({ user }: SidebarProps) {
       <div className="border-t border-sidebar-border px-6 py-4">
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary font-medium">
-            {user.name.charAt(0).toUpperCase()}
+            {(user.name || "G").charAt(0).toUpperCase()}
           </div>
           <div className="flex-1 overflow-hidden">
-            <p className="truncate text-sm font-medium text-foreground">{user.name}</p>
-            <p className="truncate text-xs text-muted-foreground">{user.email}</p>
+            <p className="truncate text-sm font-medium text-foreground">{user.name || "Guest"}</p>
+            <p className="truncate text-xs text-muted-foreground">{user.email || "Not signed in"}</p>
           </div>
         </div>
         <Button

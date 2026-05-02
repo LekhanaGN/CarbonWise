@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Sidebar } from "@/components/dashboard/sidebar"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -13,9 +13,11 @@ import {
   Zap, 
   Bus,
   ArrowLeft,
-  Plus
+  Plus,
+  Check
 } from "lucide-react"
 import Link from "next/link"
+import { getState, logAction, subscribeToStateChanges, type AppState } from "@/lib/store"
 
 // Available eco actions - static data for action types
 const ecoActions = [
@@ -81,25 +83,52 @@ const ecoActions = [
   },
 ]
 
-// User state - will come from auth/database
-const initialUser = {
-  name: "",
-  email: "",
-  points: 0,
-  co2Saved: 0,
-}
-
 export default function LogActionPage() {
-  const [user] = useState(initialUser)
+  const [state, setState] = useState<AppState | null>(null)
+  const [loggedActionId, setLoggedActionId] = useState<string | null>(null)
+  const [isLogging, setIsLogging] = useState(false)
 
-  const handleLogAction = (actionId: string) => {
-    // This will be connected to database
-    console.log("Logging action:", actionId)
+  useEffect(() => {
+    setState(getState())
+    const unsubscribe = subscribeToStateChanges((newState) => {
+      setState(newState)
+    })
+    return unsubscribe
+  }, [])
+
+  const handleLogAction = async (action: typeof ecoActions[0]) => {
+    setIsLogging(true)
+    setLoggedActionId(action.id)
+    
+    // Simulate a brief delay for feedback
+    await new Promise(resolve => setTimeout(resolve, 500))
+    
+    logAction(
+      action.id,
+      action.title,
+      action.description,
+      action.category,
+      action.points,
+      action.co2Saved
+    )
+    
+    // Show success state briefly
+    await new Promise(resolve => setTimeout(resolve, 1000))
+    setLoggedActionId(null)
+    setIsLogging(false)
+  }
+
+  if (!state) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <div className="text-muted-foreground">Loading...</div>
+      </div>
+    )
   }
 
   return (
     <div className="flex min-h-screen bg-background">
-      <Sidebar user={user} />
+      <Sidebar user={state.user} />
 
       <main className="flex-1 overflow-y-auto p-6">
         <div className="mx-auto max-w-5xl space-y-6">
@@ -120,59 +149,118 @@ export default function LogActionPage() {
             </div>
           </div>
 
+          {/* User Stats Summary */}
+          <div className="flex flex-wrap gap-4 rounded-lg bg-primary/10 p-4">
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">Your Points:</span>
+              <span className="font-bold text-primary">{state.user.points}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">CO2 Saved:</span>
+              <span className="font-bold text-primary">{state.user.co2Saved.toFixed(1)} kg</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">Actions Logged:</span>
+              <span className="font-bold text-primary">{state.actions.length}</span>
+            </div>
+          </div>
+
           {/* Available Actions */}
           <div>
             <h2 className="mb-4 text-lg font-semibold text-foreground">Available Actions</h2>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {ecoActions.map((action) => (
-                <Card key={action.id} className="relative overflow-hidden border-0 shadow-sm">
-                  {/* Points Badge */}
-                  <div className="absolute right-0 top-0">
-                    <div className={`relative h-20 w-20 ${action.badgeColor} rounded-bl-full`}>
-                      <span className="absolute right-2 top-2 text-xs font-bold text-white">
-                        +{action.points} pts
-                      </span>
-                    </div>
-                  </div>
-
-                  <CardContent className="p-5">
-                    {/* Icon */}
-                    <div className="mb-4">
-                      <action.icon className="h-6 w-6 text-foreground" />
-                    </div>
-
-                    {/* Title */}
-                    <h3 className="font-semibold text-foreground">{action.title}</h3>
-                    
-                    {/* Description */}
-                    <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                      {action.description}
-                    </p>
-
-                    {/* CO2 and Category */}
-                    <div className="mt-4 flex items-center justify-between">
-                      <div>
-                        <p className="text-xs text-muted-foreground">CO2 Saved</p>
-                        <p className="font-semibold text-foreground">{action.co2Saved} kg</p>
+              {ecoActions.map((action) => {
+                const isThisLogging = loggedActionId === action.id
+                
+                return (
+                  <Card key={action.id} className="relative overflow-hidden border-0 shadow-sm transition-transform hover:scale-[1.02]">
+                    {/* Points Badge */}
+                    <div className="absolute right-0 top-0">
+                      <div className={`relative h-20 w-20 ${action.badgeColor} rounded-bl-full`}>
+                        <span className="absolute right-2 top-2 text-xs font-bold text-white">
+                          +{action.points} pts
+                        </span>
                       </div>
-                      <Badge variant="outline" className="text-xs">
-                        {action.category}
-                      </Badge>
                     </div>
 
-                    {/* Log Button */}
-                    <Button 
-                      className="mt-4 w-full gap-2"
-                      onClick={() => handleLogAction(action.id)}
-                    >
-                      <Plus className="h-4 w-4" />
-                      Log This Action
-                    </Button>
-                  </CardContent>
-                </Card>
-              ))}
+                    <CardContent className="p-5">
+                      {/* Icon */}
+                      <div className="mb-4">
+                        <action.icon className="h-6 w-6 text-foreground" />
+                      </div>
+
+                      {/* Title */}
+                      <h3 className="font-semibold text-foreground">{action.title}</h3>
+                      
+                      {/* Description */}
+                      <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                        {action.description}
+                      </p>
+
+                      {/* CO2 and Category */}
+                      <div className="mt-4 flex items-center justify-between">
+                        <div>
+                          <p className="text-xs text-muted-foreground">CO2 Saved</p>
+                          <p className="font-semibold text-foreground">{action.co2Saved} kg</p>
+                        </div>
+                        <Badge variant="outline" className="text-xs">
+                          {action.category}
+                        </Badge>
+                      </div>
+
+                      {/* Log Button */}
+                      <Button 
+                        className="mt-4 w-full gap-2"
+                        onClick={() => handleLogAction(action)}
+                        disabled={isLogging}
+                      >
+                        {isThisLogging ? (
+                          <>
+                            <Check className="h-4 w-4" />
+                            Logged!
+                          </>
+                        ) : (
+                          <>
+                            <Plus className="h-4 w-4" />
+                            Log This Action
+                          </>
+                        )}
+                      </Button>
+                    </CardContent>
+                  </Card>
+                )
+              })}
             </div>
           </div>
+
+          {/* Recent Logged Actions */}
+          {state.actions.length > 0 && (
+            <div>
+              <h2 className="mb-4 text-lg font-semibold text-foreground">Your Recent Actions</h2>
+              <div className="space-y-2">
+                {state.actions.slice(0, 5).map((action) => (
+                  <Card key={action.id} className="border-0 shadow-sm">
+                    <CardContent className="flex items-center justify-between p-4">
+                      <div>
+                        <p className="font-medium text-foreground">{action.title}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {action.timestamp.toLocaleDateString()} at {action.timestamp.toLocaleTimeString()}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <Badge className="bg-primary text-primary-foreground">
+                          +{action.points} pts
+                        </Badge>
+                        <p className="mt-1 text-xs text-muted-foreground">
+                          {action.co2Saved} kg CO2
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </main>
     </div>

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CarbonWise Tracker</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="popup-container">
+    <!-- Header -->
+    <header class="header">
+      <div class="logo">
+        <svg class="logo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2z"/>
+          <path d="M12 6v6l4 2"/>
+        </svg>
+        <span class="logo-text">CarbonWise</span>
+      </div>
+      <div class="live-badge">
+        <span class="live-dot"></span>
+        Live
+      </div>
+    </header>
+
+    <!-- Stats Cards -->
+    <div class="stats-grid">
+      <div class="stat-card stat-points">
+        <span class="stat-value" id="totalPoints">0</span>
+        <span class="stat-label">Total Points</span>
+      </div>
+      <div class="stat-card stat-co2">
+        <span class="stat-value" id="totalCO2">0.0</span>
+        <span class="stat-label">kg CO2 Saved</span>
+      </div>
+    </div>
+
+    <!-- Current Page Status -->
+    <div class="current-page" id="currentPageSection">
+      <h3 class="section-title">Current Page</h3>
+      <div class="page-status" id="pageStatus">
+        <div class="status-icon status-checking">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M12 6v6l4 2"/>
+          </svg>
+        </div>
+        <div class="status-text">
+          <p class="status-title" id="pageTitle">Checking...</p>
+          <p class="status-subtitle" id="pageSubtitle">Analyzing page</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Carbon Impact Alert -->
+    <div class="impact-alert" id="impactAlert" style="display: none;">
+      <div class="alert-header">
+        <span class="alert-icon">⚠️</span>
+        <span class="alert-title">Carbon Impact Detected</span>
+      </div>
+      <div class="alert-body">
+        <p class="impact-value" id="impactValue">~2.5 kg CO2</p>
+        <p class="impact-desc" id="impactDesc">Estimated carbon footprint for this action</p>
+      </div>
+      <div class="alert-actions">
+        <button class="btn btn-secondary" id="dismissBtn">Dismiss</button>
+        <button class="btn btn-primary" id="offsetBtn">Log Offset Action</button>
+      </div>
+    </div>
+
+    <!-- Eco Suggestions -->
+    <div class="suggestions" id="suggestionsSection">
+      <h3 class="section-title">Eco Alternatives</h3>
+      <div class="suggestion-list" id="suggestionList">
+        <!-- Filled by JS -->
+      </div>
+    </div>
+
+    <!-- Today's Activity -->
+    <div class="activity">
+      <h3 class="section-title">Today&apos;s Activity</h3>
+      <div class="activity-list" id="activityList">
+        <p class="empty-state">No activity detected today</p>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <a href="#" id="openDashboard" class="footer-link">Open Dashboard</a>
+      <span class="divider">|</span>
+      <a href="#" id="settingsLink" class="footer-link">Settings</a>
+    </footer>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

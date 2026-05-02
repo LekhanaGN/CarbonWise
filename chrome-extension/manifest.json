@@ -1,0 +1,109 @@
+{
+  "manifest_version": 3,
+  "name": "CarbonWise Tracker",
+  "version": "1.0.0",
+  "description": "Track your carbon footprint across popular websites and earn eco-points in real-time",
+  "permissions": [
+    "storage",
+    "activeTab",
+    "tabs"
+  ],
+  "host_permissions": [
+    "https://swiggy.com/*",
+    "https://www.swiggy.com/*",
+    "https://zomato.com/*",
+    "https://www.zomato.com/*",
+    "https://uber.com/*",
+    "https://www.uber.com/*",
+    "https://ola.com/*",
+    "https://www.ola.com/*",
+    "https://redbus.in/*",
+    "https://www.redbus.in/*",
+    "https://myntra.com/*",
+    "https://www.myntra.com/*",
+    "https://amazon.in/*",
+    "https://www.amazon.in/*",
+    "https://flipkart.com/*",
+    "https://www.flipkart.com/*",
+    "https://makemytrip.com/*",
+    "https://www.makemytrip.com/*",
+    "https://goibibo.com/*",
+    "https://www.goibibo.com/*",
+    "https://youtube.com/*",
+    "https://www.youtube.com/*",
+    "https://netflix.com/*",
+    "https://www.netflix.com/*"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://swiggy.com/*",
+        "https://www.swiggy.com/*",
+        "https://zomato.com/*",
+        "https://www.zomato.com/*"
+      ],
+      "js": ["content-scripts/food.js"],
+      "css": ["content-scripts/overlay.css"]
+    },
+    {
+      "matches": [
+        "https://uber.com/*",
+        "https://www.uber.com/*",
+        "https://ola.com/*",
+        "https://www.ola.com/*",
+        "https://redbus.in/*",
+        "https://www.redbus.in/*"
+      ],
+      "js": ["content-scripts/transport.js"],
+      "css": ["content-scripts/overlay.css"]
+    },
+    {
+      "matches": [
+        "https://myntra.com/*",
+        "https://www.myntra.com/*",
+        "https://amazon.in/*",
+        "https://www.amazon.in/*",
+        "https://flipkart.com/*",
+        "https://www.flipkart.com/*"
+      ],
+      "js": ["content-scripts/shopping.js"],
+      "css": ["content-scripts/overlay.css"]
+    },
+    {
+      "matches": [
+        "https://makemytrip.com/*",
+        "https://www.makemytrip.com/*",
+        "https://goibibo.com/*",
+        "https://www.goibibo.com/*"
+      ],
+      "js": ["content-scripts/flights.js"],
+      "css": ["content-scripts/overlay.css"]
+    },
+    {
+      "matches": [
+        "https://youtube.com/*",
+        "https://www.youtube.com/*",
+        "https://netflix.com/*",
+        "https://www.netflix.com/*"
+      ],
+      "js": ["content-scripts/streaming.js"],
+      "css": ["content-scripts/overlay.css"]
+    }
+  ]
+}
