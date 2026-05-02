@@ -5,7 +5,6 @@ import { Sidebar } from "@/components/dashboard/sidebar"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
-import { getState, subscribeToStateChanges, type AppState } from "@/lib/store"
 import { 
   Award, 
   Leaf,
@@ -18,8 +17,10 @@ import {
   Sun,
   Lock,
   CheckCircle,
-  Star
+  Star,
+  Loader2
 } from "lucide-react"
+import { useUserData } from "@/hooks/useUserData"
 
 // Badge definitions
 const BADGES = [
@@ -119,23 +120,18 @@ const BADGES = [
 ]
 
 export default function BadgesPage() {
-  const [appState, setAppState] = useState<AppState | null>(null)
+  const { user, stats, isLoading } = useUserData()
 
-  useEffect(() => {
-    setAppState(getState())
-    const unsubscribe = subscribeToStateChanges(setAppState)
-    return unsubscribe
-  }, [])
-
-  if (!appState) {
+  if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
-        <div className="animate-pulse text-muted-foreground">Loading...</div>
+        <div className="flex items-center gap-2 text-muted-foreground">
+          <Loader2 className="h-4 w-4 animate-spin" />
+          Loading badges...
+        </div>
       </div>
     )
   }
-
-  const { user, actions } = appState
 
   // Calculate badge progress
   const getBadgeProgress = (badge: typeof BADGES[0]) => {
@@ -143,16 +139,17 @@ export default function BadgesPage() {
     
     switch (badge.type) {
       case "actions":
-        current = actions.length
+        current = stats.actionCount
         break
       case "co2":
-        current = user.co2Saved
+        current = stats.totalCO2
         break
       case "points":
-        current = user.points
+        current = stats.points
         break
       case "category":
-        current = actions.filter(a => a.category === badge.category).length
+        // For now, assume 0 for category since we don't have categorized actions from API
+        current = 0
         break
     }
     
@@ -168,7 +165,7 @@ export default function BadgesPage() {
 
   return (
     <div className="flex min-h-screen bg-background">
-      <Sidebar user={user} />
+      <Sidebar user={user ? { id: user.id, name: user.name, email: user.email, points: stats.points, co2Saved: stats.totalCO2 } : undefined} />
 
       <main className="flex-1 overflow-auto p-4 pt-16 md:p-6 lg:p-8 lg:pt-8">
         {/* Header */}

@@ -19,9 +19,10 @@ import {
   Linkedin,
   Github,
   ArrowRight,
-  Users
+  Users,
 } from "lucide-react"
-
+import { Sidebar } from "@/components/dashboard/sidebar"
+import { getState, type AppState } from "@/lib/store"
 const navLinks = [
   { label: "Features", href: "#features" },
   { label: "How It Works", href: "#how-it-works" },
@@ -184,27 +185,6 @@ export default function LandingPage() {
                   </Button>
                 </Link>
               </div>
-
-              {/* Social Proof */}
-              <div className="mt-10">
-                <p className="text-sm text-muted-foreground">Join 1000+ eco-conscious users</p>
-                <div className="mt-3 flex items-center gap-2">
-                  <div className="flex -space-x-2">
-                    {[1, 2, 3, 4].map((i) => (
-                      <div
-                        key={i}
-                        className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-background bg-primary/20 text-xs font-medium text-primary"
-                      >
-                        {String.fromCharCode(64 + i)}
-                      </div>
-                    ))}
-                  </div>
-                  <span className="ml-2 flex items-center gap-1 rounded-full bg-muted px-3 py-1 text-sm">
-                    <Users className="h-4 w-4" />
-                    1K+
-                  </span>
-                </div>
-              </div>
             </div>
 
             {/* Hero Image - Earth */}
@@ -340,27 +320,6 @@ export default function LandingPage() {
                   </Button>
                 </Link>
               </div>
-
-              {/* Social Proof */}
-              <div className="mt-10">
-                <p className="text-sm text-muted-foreground">Join 1000+ eco-conscious users</p>
-                <div className="mt-3 flex items-center gap-2">
-                  <div className="flex -space-x-2">
-                    {[1, 2, 3, 4].map((i) => (
-                      <div
-                        key={i}
-                        className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-background bg-primary/20 text-xs font-medium text-primary"
-                      >
-                        {String.fromCharCode(64 + i)}
-                      </div>
-                    ))}
-                  </div>
-                  <span className="ml-2 flex items-center gap-1 rounded-full bg-muted px-3 py-1 text-sm">
-                    <Users className="h-4 w-4" />
-                    1K+
-                  </span>
-                </div>
-              </div>
             </div>
 
             {/* Right - Hero Image */}
@@ -391,57 +350,6 @@ export default function LandingPage() {
       {/* Footer */}
       <footer className="border-t border-border bg-card">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
-          <div className="grid gap-8 md:grid-cols-4">
-            {/* Brand */}
-            <div>
-              <h3 className="font-bold text-foreground">CarbonWise</h3>
-              <p className="mt-2 text-sm text-muted-foreground">Track. Reduce. Earn.</p>
-            </div>
-
-            {/* Product */}
-            <div>
-              <h4 className="font-semibold text-foreground">Product</h4>
-              <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
-                <li><a href="#features" className="hover:text-foreground">Features</a></li>
-                <li><a href="#how-it-works" className="hover:text-foreground">How It Works</a></li>
-                <li><Link href="/log-action" className="hover:text-foreground">Eco Actions</Link></li>
-                <li><Link href="/extension" className="hover:text-foreground">Extension</Link></li>
-                <li><Link href="/rewards" className="hover:text-foreground">Rewards</Link></li>
-              </ul>
-            </div>
-
-            {/* Company */}
-            <div>
-              <h4 className="font-semibold text-foreground">Company</h4>
-              <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
-                <li><a href="#about" className="hover:text-foreground">About Us</a></li>
-                <li><a href="#" className="hover:text-foreground">Blog</a></li>
-                <li><a href="#" className="hover:text-foreground">Contact</a></li>
-                <li><a href="#" className="hover:text-foreground">Privacy Policy</a></li>
-                <li><a href="#" className="hover:text-foreground">Terms & Conditions</a></li>
-              </ul>
-            </div>
-
-            {/* Follow Us */}
-            <div>
-              <h4 className="font-semibold text-foreground">Follow Us</h4>
-              <div className="mt-4 flex gap-4">
-                <a href="#" className="text-muted-foreground hover:text-foreground">
-                  <Twitter className="h-5 w-5" />
-                </a>
-                <a href="#" className="text-muted-foreground hover:text-foreground">
-                  <Instagram className="h-5 w-5" />
-                </a>
-                <a href="#" className="text-muted-foreground hover:text-foreground">
-                  <Linkedin className="h-5 w-5" />
-                </a>
-                <a href="#" className="text-muted-foreground hover:text-foreground">
-                  <Github className="h-5 w-5" />
-                </a>
-              </div>
-            </div>
-          </div>
-
           <div className="mt-12 border-t border-border pt-8 text-center text-sm text-muted-foreground">
             <p>&copy; 2024 CarbonWise. All rights reserved.</p>
           </div>

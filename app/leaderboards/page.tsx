@@ -5,42 +5,32 @@ import { Sidebar } from "@/components/dashboard/sidebar"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
-import { getState, subscribeToStateChanges, type AppState } from "@/lib/store"
-import { 
-  Trophy, 
-  Medal,
-  Leaf,
-  TrendingUp,
-  Users,
-  Crown,
-  Flame
-} from "lucide-react"
+import { Trophy, Medal, Leaf, TrendingUp, Users, Crown, Flame, Loader2 } from "lucide-react"
+import { useUserData, useLeaderboard } from "@/hooks/useUserData"
 
 export default function LeaderboardsPage() {
-  const [appState, setAppState] = useState<AppState | null>(null)
+  const { user, stats, isLoading: userLoading } = useUserData()
+  const { leaderboard, isLoading: leaderboardLoading } = useLeaderboard()
+  
+  const isLoading = userLoading || leaderboardLoading
 
-  useEffect(() => {
-    setAppState(getState())
-    const unsubscribe = subscribeToStateChanges(setAppState)
-    return unsubscribe
-  }, [])
-
-  if (!appState) {
+  if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
-        <div className="animate-pulse text-muted-foreground">Loading...</div>
+        <div className="flex items-center gap-2 text-muted-foreground">
+          <Loader2 className="h-4 w-4 animate-spin" />
+          Loading leaderboard...
+        </div>
       </div>
     )
   }
 
-  const { leaderboard, user } = appState
-
   // Get user rank
-  const userRank = leaderboard.find(e => e.id === user.id)?.rank || null
+  const userRank = leaderboard.find(e => e.id === user?.id)?.rank || null
 
   return (
     <div className="flex min-h-screen bg-background">
-      <Sidebar user={user} />
+      <Sidebar user={user ? { id: user.id, name: user.name, email: user.email, points: stats.points, co2Saved: stats.totalCO2 } : undefined} />
 
       <main className="flex-1 overflow-auto p-4 pt-16 md:p-6 lg:p-8 lg:pt-8">
         {/* Header */}

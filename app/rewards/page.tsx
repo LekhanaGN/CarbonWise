@@ -6,8 +6,8 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
-import { Gift, Lock, CheckCircle, ShoppingBag, Coffee, Leaf, Bike, TreePine } from "lucide-react"
-import { getState, subscribeToStateChanges, type AppState } from "@/lib/store"
+import { Gift, Lock, CheckCircle, ShoppingBag, Coffee, Leaf, Bike, TreePine, Loader2 } from "lucide-react"
+import { useUserData } from "@/hooks/useUserData"
 
 // Available rewards - static data for reward types
 const availableRewards = [
@@ -61,30 +61,25 @@ interface ClaimedReward {
 }
 
 export default function RewardsPage() {
-  const [state, setState] = useState<AppState | null>(null)
+  const { user, stats, isLoading } = useUserData()
   const [claimedRewards] = useState<ClaimedReward[]>([])
   
-  useEffect(() => {
-    setState(getState())
-    const unsubscribe = subscribeToStateChanges((newState) => {
-      setState(newState)
-    })
-    return unsubscribe
-  }, [])
-
-  if (!state) {
+  if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
-        <div className="text-muted-foreground">Loading...</div>
+        <div className="flex items-center gap-2 text-muted-foreground">
+          <Loader2 className="h-4 w-4 animate-spin" />
+          Loading...
+        </div>
       </div>
     )
   }
 
-  const userPoints = state.user.points
+  const userPoints = stats.points
 
   return (
     <div className="flex min-h-screen bg-background">
-      <Sidebar user={state.user} />
+      <Sidebar user={user ? { id: user.id, name: user.name, email: user.email, points: stats.points, co2Saved: stats.totalCO2 } : undefined} />
 
       <main className="flex-1 overflow-y-auto p-6">
         <div className="mx-auto max-w-4xl space-y-6">

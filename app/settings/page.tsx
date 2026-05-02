@@ -1,13 +1,13 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { Sidebar } from "@/components/dashboard/sidebar"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
-import { getState, updateUser, clearState, subscribeToStateChanges, type AppState } from "@/lib/store"
 import { 
   Settings, 
   User,
@@ -15,54 +15,86 @@ import {
   Shield,
   Trash2,
   Save,
-  AlertTriangle
+  AlertTriangle,
+  Loader2
 } from "lucide-react"
-import { useRouter } from "next/navigation"
+import { useUserData, updateUserProfile } from "@/hooks/useUserData"
+import { createClient } from "@/lib/supabaseClient"
 
 export default function SettingsPage() {
   const router = useRouter()
-  const [appState, setAppState] = useState<AppState | null>(null)
+  const { user, isLoading: isLoadingUser, mutate } = useUserData()
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
   const [saved, setSaved] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
   const [notifications, setNotifications] = useState(true)
   const [weeklyReport, setWeeklyReport] = useState(true)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
   useEffect(() => {
-    const state = getState()
-    setAppState(state)
-    setName(state.user.name)
-    setEmail(state.user.email)
-    
-    const unsubscribe = subscribeToStateChanges((newState) => {
-      setAppState(newState)
-    })
-    return unsubscribe
-  }, [])
+    if (user) {
+      setName(user.name || "")
+      setEmail(user.email || "")
+    }
+  }, [user])
 
-  const handleSaveProfile = () => {
-    updateUser(name, email)
-    setSaved(true)
-    setTimeout(() => setSaved(false), 3000)
+  const handleSaveProfile = async () => {
+    setIsSaving(true)
+    try {
+      await updateUserProfile(name, email)
+      setSaved(true)
+      mutate()
+      setTimeout(() => setSaved(false), 3000)
+    } catch (error) {
+      console.error('[v0] Error saving profile:', error)
+    } finally {
+      setIsSaving(false)
+    }
   }
 
-  const handleDeleteData = () => {
-    clearState()
-    router.push("/login")
+  const handleDeleteData = async () => {
+    try {
+      const supabaseClient = createClient()
+      
+      // Delete carbon logs
+      const { error: logsError } = await supabaseClient
+        .from('carbon_logs')
+        .delete()
+        .eq('user_id', user?.id)
+
+      if (logsError) throw logsError
+
+      // Delete user profile
+      const { error: userError } = await supabaseClient
+        .from('users')
+        .delete()
+        .eq('id', user?.id)
+
+      if (userError) throw userError
+
+      // Sign out and redirect
+      await supabaseClient.auth.signOut()
+      router.push("/login")
+    } catch (error) {
+      console.error('[v0] Error deleting data:', error)
+    }
   }
 
-  if (!appState) {
+  if (isLoadingUser) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
-        <div className="animate-pulse text-muted-foreground">Loading...</div>
+        <div className="flex items-center gap-2 text-muted-foreground">
+          <Loader2 className="h-4 w-4 animate-spin" />
+          Loading settings...
+        </div>
       </div>
     )
   }
 
   return (
     <div className="flex min-h-screen bg-background">
-      <Sidebar user={appState.user} />
+      <Sidebar user={user ? { id: user.id, name: user.name, email: user.email, points: (user.carbon_score || 0) * 10, co2Saved: user.carbon_score || 0 } : undefined} />
 
       <main className="flex-1 overflow-auto p-4 pt-16 md:p-6 lg:p-8 lg:pt-8">
         {/* Header */}
@@ -104,11 +136,21 @@ export default function SettingsPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="Enter your email"
+                  disabled
                 />
               </div>
-              <Button onClick={handleSaveProfile} className="gap-2">
-                <Save className="h-4 w-4" />
-                {saved ? "Saved!" : "Save Changes"}
+              <Button onClick={handleSaveProfile} className="gap-2" disabled={isSaving}>
+                {isSaving ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Save className="h-4 w-4" />
+                    {saved ? "Saved!" : "Save Changes"}
+                  </>
+                )}
               </Button>
             </CardContent>
           </Card>

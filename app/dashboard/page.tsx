@@ -1,28 +1,82 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { Sidebar } from "@/components/dashboard/sidebar"
 import { DashboardHeader } from "@/components/dashboard/dashboard-header"
 import { StatCards } from "@/components/dashboard/stat-cards"
 import { WeeklyChart } from "@/components/dashboard/weekly-chart"
 import { RecentActions } from "@/components/dashboard/recent-actions"
-import { RightSidebar } from "@/components/dashboard/right-sidebar"
 import { LiveLeaderboard } from "@/components/dashboard/live-leaderboard"
 import { EcoSuggestions } from "@/components/dashboard/eco-suggestions"
-import { getState, subscribeToStateChanges, type AppState } from "@/lib/store"
+import { createClient } from "@/lib/supabaseClient"
+import { getState, type AppState } from "@/lib/store"
 
 export default function Dashboard() {
+  const router = useRouter()
   const [state, setState] = useState<AppState | null>(null)
+  const [user, setUser] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
+  const [leaderboardData, setLeaderboardData] = useState<any[]>([])
 
   useEffect(() => {
-    setState(getState())
-    const unsubscribe = subscribeToStateChanges((newState) => {
-      setState(newState)
-    })
-    return unsubscribe
+    const checkAuth = async () => {
+      try {
+        const supabaseClient = createClient()
+        const { data: { user: authUser }, error } = await supabaseClient.auth.getUser()
+        
+        if (error || !authUser) {
+          router.push("/login")
+          return
+        }
+
+        setUser(authUser)
+        
+        // Get state from localStorage for now (will be replaced with Supabase DB queries)
+        const appState = getState()
+        
+        // Update user info from auth
+        const updatedState: AppState = {
+          ...appState,
+          user: {
+            ...appState.user,
+            email: authUser.email || "",
+            name: authUser.user_metadata?.full_name || authUser.email?.split("@")[0] || "User",
+          }
+        }
+        
+        setState(updatedState)
+
+        // Fetch leaderboard data from Supabase
+        const { data: users, error: leaderboardError } = await supabaseClient
+          .from('users')
+          .select('id, name, carbon_score')
+          .order('carbon_score', { ascending: false })
+          .limit(10)
+
+        if (!leaderboardError && users) {
+          const leaderboard = users.map((user, index) => ({
+            id: user.id,
+            rank: index + 1,
+            name: user.name,
+            points: user.carbon_score * 10,
+            co2Saved: user.carbon_score,
+            avatarInitial: user.name?.charAt(0).toUpperCase() || 'U'
+          }))
+          setLeaderboardData(leaderboard)
+        }
+
+        setLoading(false)
+      } catch (error) {
+        console.error("Auth error:", error)
+        router.push("/login")
+      }
+    }
+
+    checkAuth()
   }, [])
 
-  if (!state) {
+  if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
         <div className="text-muted-foreground">Loading...</div>
@@ -51,9 +105,9 @@ export default function Dashboard() {
       {/* Left Sidebar */}
       <Sidebar user={state.user} />
 
-      {/* Main Content */}
-      <main className="flex-1 overflow-y-auto p-4 md:p-6">
-        <div className="mx-auto max-w-6xl space-y-6">
+      {/* Main Content - with flex-1 to fill remaining space */}
+      <main className="flex-1 overflow-y-auto p-4 md:p-6 transition-all duration-300 ease-in-out">
+        <div className="mx-auto max-w-6xl space-y-6 pt-12 lg:pt-0">
           <DashboardHeader userName={state.user.name} />
           <StatCards stats={stats} />
           
@@ -63,7 +117,7 @@ export default function Dashboard() {
               <WeeklyChart data={state.weeklyData} />
             </div>
             <div className="lg:col-span-1">
-              <LiveLeaderboard entries={state.leaderboard} currentUserId={state.user.id} />
+              <LiveLeaderboard entries={leaderboardData} currentUserId={state.user.id} />
             </div>
           </div>
           
@@ -78,11 +132,6 @@ export default function Dashboard() {
           </div>
         </div>
       </main>
-
-      {/* Right Sidebar - Quick Actions only on XL screens */}
-      <div className="hidden w-72 flex-shrink-0 border-l border-border bg-card p-4 xl:block">
-        <RightSidebar />
-      </div>
     </div>
   )
 }

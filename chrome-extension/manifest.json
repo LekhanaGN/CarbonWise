@@ -35,10 +35,6 @@
     "https://www.netflix.com/*"
   ],
   "action": {
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
->>>>>>> b40f630abe6a884a2cdcc4c0e7b4051eca44b50b
     "default_popup": "popup.html",
     "default_icon": {
       "16": "icons/icon16.jpg",
@@ -50,15 +46,7 @@
     "16": "icons/icon16.jpg",
     "48": "icons/icon48.jpg",
     "128": "icons/icon128.jpg"
-<<<<<<< HEAD
   },
-=======
-=======
-    "default_popup": "popup.html"
->>>>>>> 4c5cb4be184f236feba69b6683090771f2b64db2
-  },
-  
->>>>>>> b40f630abe6a884a2cdcc4c0e7b4051eca44b50b
   "background": {
     "service_worker": "background.js"
   },
