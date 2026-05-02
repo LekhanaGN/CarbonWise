@@ -51,9 +51,9 @@ export default function Dashboard() {
       {/* Left Sidebar */}
       <Sidebar user={state.user} />
 
-      {/* Main Content */}
-      <main className="flex-1 overflow-y-auto p-4 md:p-6">
-        <div className="mx-auto max-w-6xl space-y-6">
+      {/* Main Content - with flex-1 to fill remaining space */}
+      <main className="flex-1 overflow-y-auto p-4 md:p-6 transition-all duration-300 ease-in-out">
+        <div className="mx-auto max-w-6xl space-y-6 pt-12 lg:pt-0">
           <DashboardHeader userName={state.user.name} />
           <StatCards stats={stats} />
           

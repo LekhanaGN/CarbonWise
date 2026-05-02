@@ -19,7 +19,6 @@ import {
   Linkedin,
   Github,
   ArrowRight,
-  Users
 } from "lucide-react"
 
 const navLinks = [
@@ -184,27 +183,6 @@ export default function LandingPage() {
                   </Button>
                 </Link>
               </div>
-
-              {/* Social Proof */}
-              <div className="mt-10">
-                <p className="text-sm text-muted-foreground">Join 1000+ eco-conscious users</p>
-                <div className="mt-3 flex items-center gap-2">
-                  <div className="flex -space-x-2">
-                    {[1, 2, 3, 4].map((i) => (
-                      <div
-                        key={i}
-                        className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-background bg-primary/20 text-xs font-medium text-primary"
-                      >
-                        {String.fromCharCode(64 + i)}
-                      </div>
-                    ))}
-                  </div>
-                  <span className="ml-2 flex items-center gap-1 rounded-full bg-muted px-3 py-1 text-sm">
-                    <Users className="h-4 w-4" />
-                    1K+
-                  </span>
-                </div>
-              </div>
             </div>
 
             {/* Hero Image - Earth */}
@@ -341,29 +319,7 @@ export default function LandingPage() {
                 </Link>
               </div>
 
-              {/* Social Proof */}
-              <div className="mt-10">
-                <p className="text-sm text-muted-foreground">Join 1000+ eco-conscious users</p>
-                <div className="mt-3 flex items-center gap-2">
-                  <div className="flex -space-x-2">
-                    {[1, 2, 3, 4].map((i) => (
-                      <div
-                        key={i}
-                        className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-background bg-primary/20 text-xs font-medium text-primary"
-                      >
-                        {String.fromCharCode(64 + i)}
-                      </div>
-                    ))}
-                  </div>
-                  <span className="ml-2 flex items-center gap-1 rounded-full bg-muted px-3 py-1 text-sm">
-                    <Users className="h-4 w-4" />
-                    1K+
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Right - Hero Image */}
+              {/* Right - Hero Image */}
             <div className="flex items-center justify-center">
               <div className="relative h-80 w-80 lg:h-96 lg:w-96">
                 {/* Earth Image */}
