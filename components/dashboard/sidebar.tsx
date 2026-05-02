@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
+<<<<<<< HEAD
 import { 
   LayoutDashboard, 
   ClipboardList, 
@@ -16,6 +17,9 @@ import {
   Menu,
   X
 } from "lucide-react"
+=======
+import { LayoutDashboard, ClipboardList, Gift, LogOut, Leaf, Chrome } from "lucide-react"
+>>>>>>> b40f630abe6a884a2cdcc4c0e7b4051eca44b50b
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { clearState } from "@/lib/store"
@@ -24,10 +28,14 @@ const navItems = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/" },
   { icon: ClipboardList, label: "Log Action", href: "/log-action" },
   { icon: Gift, label: "Rewards", href: "/rewards" },
+<<<<<<< HEAD
   { icon: Trophy, label: "Leaderboards", href: "/leaderboards" },
   { icon: Award, label: "Badges", href: "/badges" },
   { icon: Chrome, label: "Extension", href: "/extension" },
   { icon: Settings, label: "Settings", href: "/settings" },
+=======
+  { icon: Chrome, label: "Extension", href: "/extension" },
+>>>>>>> b40f630abe6a884a2cdcc4c0e7b4051eca44b50b
 ]
 
 interface SidebarProps {

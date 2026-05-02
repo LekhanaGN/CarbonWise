@@ -7,7 +7,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Sidebar } from "@/components/dashboard/sidebar"
 import { getState, logAction, type AppState } from "@/lib/store"
+<<<<<<< HEAD
 import JSZip from "jszip"
+=======
+>>>>>>> b40f630abe6a884a2cdcc4c0e7b4051eca44b50b
 import { 
   ArrowLeft, 
   Chrome, 
@@ -120,8 +123,12 @@ const DEMO_SITES = [
     category: "Streaming",
     icon: Tv,
     color: "bg-red-100 text-red-600 border-red-200",
+<<<<<<< HEAD
     co2PerHour: 0.036, // 36g per hour
     co2PerSecond: 0.00001, // For visible demo - 0.01g per second (36g/hour)
+=======
+    co2PerHour: 0.036,
+>>>>>>> b40f630abe6a884a2cdcc4c0e7b4051eca44b50b
     points: 10,
     description: "Watch videos and live streams",
     ecoTip: "Watch in lower resolution when on mobile data",
@@ -133,8 +140,12 @@ const DEMO_SITES = [
     category: "Streaming",
     icon: Tv,
     color: "bg-red-100 text-red-800 border-red-300",
+<<<<<<< HEAD
     co2PerHour: 0.055, // 55g per hour
     co2PerSecond: 0.000015, // For visible demo
+=======
+    co2PerHour: 0.055,
+>>>>>>> b40f630abe6a884a2cdcc4c0e7b4051eca44b50b
     points: 12,
     description: "Stream movies and TV shows",
     ecoTip: "Download content on WiFi to watch offline",
@@ -165,6 +176,7 @@ export default function ExtensionPage() {
 
   // Streaming timer effect
   useEffect(() => {
+<<<<<<< HEAD
     console.log("[v0] Streaming effect triggered, streamingActive:", streamingActive)
     
     if (streamingActive) {
@@ -178,6 +190,14 @@ export default function ExtensionPage() {
     } else {
       if (streamingIntervalRef.current) {
         console.log("[v0] Clearing streaming timer")
+=======
+    if (streamingActive) {
+      streamingIntervalRef.current = setInterval(() => {
+        setStreamingSeconds(prev => prev + 1)
+      }, 1000)
+    } else {
+      if (streamingIntervalRef.current) {
+>>>>>>> b40f630abe6a884a2cdcc4c0e7b4051eca44b50b
         clearInterval(streamingIntervalRef.current)
         streamingIntervalRef.current = null
       }
@@ -197,6 +217,7 @@ export default function ExtensionPage() {
   }
 
   const calculateStreamingCO2 = (seconds: number, co2PerHour: number) => {
+<<<<<<< HEAD
     // co2PerHour is in kg, convert to grams for display then back to kg
     const co2InGrams = (seconds / 3600) * (co2PerHour * 1000)
     // Return in kg with 4 decimal places
@@ -206,6 +227,10 @@ export default function ExtensionPage() {
   const calculateStreamingCO2InGrams = (seconds: number, co2PerHour: number) => {
     // Display in grams for better visibility
     return ((seconds / 3600) * (co2PerHour * 1000)).toFixed(2)
+=======
+    const hours = seconds / 3600
+    return (hours * co2PerHour).toFixed(4)
+>>>>>>> b40f630abe6a884a2cdcc4c0e7b4051eca44b50b
   }
 
   const simulateVisit = (site: typeof DEMO_SITES[0]) => {
@@ -272,6 +297,7 @@ export default function ExtensionPage() {
     setAppState(getState())
   }
 
+<<<<<<< HEAD
   const downloadExtension = async () => {
     const zip = new JSZip()
     const chromeExtFolder = zip.folder("chrome-extension")
@@ -651,6 +677,18 @@ For more help, visit carbonwise.app/support`
         resolve(blob || new Blob())
       }, 'image/png')
     })
+=======
+  const downloadExtension = () => {
+    // Create a simple alert with instructions since we can't directly download a folder
+    alert(
+      "To download the CarbonWise Chrome Extension:\n\n" +
+      "1. Click the three-dot menu in the top right of this page\n" +
+      "2. Select 'Download ZIP'\n" +
+      "3. Extract the ZIP file\n" +
+      "4. The 'chrome-extension' folder contains the extension\n\n" +
+      "Then follow the installation steps below to load it in Chrome."
+    )
+>>>>>>> b40f630abe6a884a2cdcc4c0e7b4051eca44b50b
   }
 
   if (!appState) {
@@ -716,7 +754,11 @@ For more help, visit carbonwise.app/support`
                       {formatTime(streamingSeconds)}
                     </span>
                     <span>
+<<<<<<< HEAD
                       CO2: {calculateStreamingCO2InGrams(streamingSeconds, activeSite.co2PerHour || 0.036)}g
+=======
+                      CO2: {calculateStreamingCO2(streamingSeconds, activeSite.co2PerHour || 0.036)} kg
+>>>>>>> b40f630abe6a884a2cdcc4c0e7b4051eca44b50b
                     </span>
                   </div>
                 </div>
@@ -1005,9 +1047,13 @@ For more help, visit carbonwise.app/support`
                   )}
                 </p>
                 <p className="mt-1 text-2xl font-bold text-amber-600">
+<<<<<<< HEAD
                   ~{notificationData.isStreaming 
                     ? `${(notificationData.co2 * 1000).toFixed(2)}g` 
                     : `${notificationData.co2} kg`} CO2
+=======
+                  ~{notificationData.co2} kg CO2
+>>>>>>> b40f630abe6a884a2cdcc4c0e7b4051eca44b50b
                 </p>
               </div>
               
