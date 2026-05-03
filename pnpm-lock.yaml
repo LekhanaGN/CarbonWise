@@ -92,12 +92,21 @@ importers:
       '@radix-ui/react-tooltip':
         specifier: 1.2.8
         version: 1.2.8(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 778ecd85492936ad34a5a3b1ed51bea1f9da59e8
       '@supabase/ssr':
         specifier: ^0.10.2
         version: 0.10.2(@supabase/supabase-js@2.105.1)
       '@supabase/supabase-js':
         specifier: ^2.105.1
         version: 2.105.1
+<<<<<<< HEAD
+=======
+=======
+>>>>>>> f3b66482f7774c42cff6be10355f1bcf487f2dff
+>>>>>>> 778ecd85492936ad34a5a3b1ed51bea1f9da59e8
       '@types/canvas-confetti':
         specifier: ^1.9.0
         version: 1.9.0
@@ -1478,10 +1487,19 @@ packages:
   graceful-fs@4.2.11:
     resolution: {integrity: sha512-RbJ5/jmFcNNCcDV5o9eTnBLJ/HszWV0P73bc+Ff4nS/rJj+YaS6IGyiOL0VoBYX+l1Wrl3k63h/KrH+nhJ0XvQ==}
 
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 778ecd85492936ad34a5a3b1ed51bea1f9da59e8
   iceberg-js@0.8.1:
     resolution: {integrity: sha512-1dhVQZXhcHje7798IVM+xoo/1ZdVfzOMIc8/rgVSijRK38EDqOJoGula9N/8ZI5RD8QTxNQtK/Gozpr+qUqRRA==}
     engines: {node: '>=20.0.0'}
 
+<<<<<<< HEAD
+=======
+=======
+>>>>>>> f3b66482f7774c42cff6be10355f1bcf487f2dff
+>>>>>>> 778ecd85492936ad34a5a3b1ed51bea1f9da59e8
   idb-keyval@6.2.2:
     resolution: {integrity: sha512-yjD9nARJ/jb1g+CvD0tlhUHOrJ9Sy0P8T9MF3YaLlHnSRpwPfpTX0XIvpmw3gAJUmEu3FiICLBDPXVwyEvrleg==}
 
@@ -1912,6 +1930,10 @@ packages:
   whatwg-url@5.0.0:
     resolution: {integrity: sha512-saE57nupxk6v3HY35+jzBwYa0rKSy0XR8JSxZPwgLr7ys0IBzhGviA1/TUGJLmSVqs8pb9AnvICXEuOHLprYTw==}
 
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 778ecd85492936ad34a5a3b1ed51bea1f9da59e8
   ws@8.20.0:
     resolution: {integrity: sha512-sAt8BhgNbzCtgGbt2OxmpuryO63ZoDk/sqaB/znQm94T4fCEsy/yV+7CdC1kJhOU9lboAEU7R3kquuycDoibVA==}
     engines: {node: '>=10.0.0'}
@@ -1924,6 +1946,11 @@ packages:
       utf-8-validate:
         optional: true
 
+<<<<<<< HEAD
+=======
+=======
+>>>>>>> f3b66482f7774c42cff6be10355f1bcf487f2dff
+>>>>>>> 778ecd85492936ad34a5a3b1ed51bea1f9da59e8
   zlibjs@0.3.1:
     resolution: {integrity: sha512-+J9RrgTKOmlxFSDHo0pI1xM6BLVUv+o0ZT9ANtCxGkjIVCCUdx9alUF8Gm+dGLKbkkkidWIHFDZHDMpfITt4+w==}
 
@@ -3107,8 +3134,16 @@ snapshots:
 
   graceful-fs@4.2.11: {}
 
+<<<<<<< HEAD
   iceberg-js@0.8.1: {}
 
+=======
+<<<<<<< HEAD
+  iceberg-js@0.8.1: {}
+
+=======
+>>>>>>> f3b66482f7774c42cff6be10355f1bcf487f2dff
+>>>>>>> 778ecd85492936ad34a5a3b1ed51bea1f9da59e8
   idb-keyval@6.2.2: {}
 
   immediate@3.0.6: {}
@@ -3530,8 +3565,16 @@ snapshots:
       tr46: 0.0.3
       webidl-conversions: 3.0.1
 
+<<<<<<< HEAD
   ws@8.20.0: {}
 
+=======
+<<<<<<< HEAD
+  ws@8.20.0: {}
+
+=======
+>>>>>>> f3b66482f7774c42cff6be10355f1bcf487f2dff
+>>>>>>> 778ecd85492936ad34a5a3b1ed51bea1f9da59e8
   zlibjs@0.3.1: {}
 
   zod@3.25.76: {}

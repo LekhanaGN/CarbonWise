@@ -2,21 +2,30 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
+<<<<<<< HEAD
 import Link from "next/link"
 import { Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Sidebar } from "@/components/dashboard/sidebar"
+=======
+import { Sidebar } from "@/components/dashboard/sidebar"
+import { DashboardHeader } from "@/components/dashboard/dashboard-header"
+>>>>>>> 778ecd85492936ad34a5a3b1ed51bea1f9da59e8
 import { StatCards } from "@/components/dashboard/stat-cards"
 import { WeeklyChart } from "@/components/dashboard/weekly-chart"
 import { RecentActions } from "@/components/dashboard/recent-actions"
 import { LiveLeaderboard } from "@/components/dashboard/live-leaderboard"
 import { EcoSuggestions } from "@/components/dashboard/eco-suggestions"
+<<<<<<< HEAD
 import { BrowserActivitySection } from "@/components/dashboard/browser-activity"
+=======
+>>>>>>> 778ecd85492936ad34a5a3b1ed51bea1f9da59e8
 import { createClient } from "@/lib/supabaseClient"
 import { getState, type AppState } from "@/lib/store"
 
 export default function Dashboard() {
   const router = useRouter()
+<<<<<<< HEAD
   const [user, setUser] = useState<any>(null)
   const [state, setState] = useState<AppState>(getState())
   const [loading, setLoading] = useState(true)
@@ -25,6 +34,13 @@ export default function Dashboard() {
   const [weeklyData, setWeeklyData] = useState<any[]>([])
 
   // Auth check and initial setup
+=======
+  const [state, setState] = useState<AppState | null>(null)
+  const [user, setUser] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
+  const [leaderboardData, setLeaderboardData] = useState<any[]>([])
+
+>>>>>>> 778ecd85492936ad34a5a3b1ed51bea1f9da59e8
   useEffect(() => {
     const checkAuth = async () => {
       try {
@@ -38,6 +54,7 @@ export default function Dashboard() {
 
         setUser(authUser)
         
+<<<<<<< HEAD
         // Expose user ID to window for extension to capture
         if (typeof window !== 'undefined') {
           (window as any).__CARBONWISE_USER_ID__ = authUser.id
@@ -45,6 +62,8 @@ export default function Dashboard() {
           console.log('[v0] User ID exposed to extension:', authUser.id)
         }
         
+=======
+>>>>>>> 778ecd85492936ad34a5a3b1ed51bea1f9da59e8
         // Get state from localStorage for now (will be replaced with Supabase DB queries)
         const appState = getState()
         
@@ -53,7 +72,10 @@ export default function Dashboard() {
           ...appState,
           user: {
             ...appState.user,
+<<<<<<< HEAD
             id: authUser.id,
+=======
+>>>>>>> 778ecd85492936ad34a5a3b1ed51bea1f9da59e8
             email: authUser.email || "",
             name: authUser.user_metadata?.full_name || authUser.email?.split("@")[0] || "User",
           }
@@ -88,6 +110,7 @@ export default function Dashboard() {
     }
 
     checkAuth()
+<<<<<<< HEAD
   }, [router])
 
   // Fetch and calculate carbon logs and stats with real-time subscription
@@ -194,6 +217,10 @@ export default function Dashboard() {
   }, [state.user.id])
 
   // Show loading state
+=======
+  }, [])
+
+>>>>>>> 778ecd85492936ad34a5a3b1ed51bea1f9da59e8
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
@@ -202,6 +229,7 @@ export default function Dashboard() {
     )
   }
 
+<<<<<<< HEAD
   // Calculate stats from carbon logs
   const totalCO2 = carbonLogs.reduce((sum: number, log: any) => sum + (log.carbon_value || 0), 0)
   const totalPoints = Math.round(totalCO2 * 100)
@@ -251,6 +279,45 @@ export default function Dashboard() {
             </div>
           </div>
 
+=======
+  const stats = {
+    totalPoints: state.user.points,
+    co2Saved: state.user.co2Saved,
+    actionsCompleted: state.actions.length,
+    rewardsRedeemed: 0,
+  }
+
+  const recentActions = state.actions.slice(0, 5).map(action => ({
+    id: action.id,
+    title: action.title,
+    timestamp: action.timestamp,
+    points: action.points,
+    co2Saved: action.co2Saved,
+    category: action.category,
+  }))
+
+  return (
+    <div className="flex min-h-screen bg-background">
+      {/* Left Sidebar */}
+      <Sidebar user={state.user} />
+
+      {/* Main Content - with flex-1 to fill remaining space */}
+      <main className="flex-1 overflow-y-auto p-4 md:p-6 transition-all duration-300 ease-in-out">
+        <div className="mx-auto max-w-6xl space-y-6 pt-12 lg:pt-0">
+          <DashboardHeader userName={state.user.name} />
+          <StatCards stats={stats} />
+          
+          {/* Main grid with chart and leaderboard side by side */}
+          <div className="grid gap-6 lg:grid-cols-3">
+            <div className="lg:col-span-2">
+              <WeeklyChart data={state.weeklyData} />
+            </div>
+            <div className="lg:col-span-1">
+              <LiveLeaderboard entries={leaderboardData} currentUserId={state.user.id} />
+            </div>
+          </div>
+          
+>>>>>>> 778ecd85492936ad34a5a3b1ed51bea1f9da59e8
           {/* Recent Actions and Eco Suggestions */}
           <div className="grid gap-6 lg:grid-cols-3">
             <div className="lg:col-span-2">
@@ -260,9 +327,12 @@ export default function Dashboard() {
               <EcoSuggestions />
             </div>
           </div>
+<<<<<<< HEAD
 
           {/* Browser Activity Section */}
           <BrowserActivitySection userId={state.user.id} />
+=======
+>>>>>>> 778ecd85492936ad34a5a3b1ed51bea1f9da59e8
         </div>
       </main>
     </div>

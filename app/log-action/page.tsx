@@ -3,10 +3,15 @@
 import { useState, useEffect } from "react"
 import { Sidebar } from "@/components/dashboard/sidebar"
 import { Button } from "@/components/ui/button"
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 778ecd85492936ad34a5a3b1ed51bea1f9da59e8
 import { ArrowLeft, Loader2 } from "lucide-react"
 import Link from "next/link"
 import { EcoActionLogger } from "@/components/eco-action-logger"
 import { useUserData } from "@/hooks/useUserData"
+<<<<<<< HEAD
 
 export default function LogActionPage() {
   const { user, stats, isLoading, mutate } = useUserData()
@@ -20,6 +25,40 @@ export default function LogActionPage() {
   }
 
   if (isLoading) {
+=======
+
+export default function LogActionPage() {
+  const { user, stats, isLoading, mutate } = useUserData()
+  const [isSyncing, setIsSyncing] = useState(false)
+
+  const handleActionLogged = async () => {
+    setIsSyncing(true)
+    // Revalidate user data after logging action
+    await mutate()
+    setIsSyncing(false)
+  }
+
+  if (isLoading) {
+=======
+import { ArrowLeft } from "lucide-react"
+import Link from "next/link"
+import { getState, subscribeToStateChanges, type AppState } from "@/lib/store"
+import { EcoActionLogger } from "@/components/eco-action-logger"
+
+export default function LogActionPage() {
+  const [state, setState] = useState<AppState | null>(null)
+
+  useEffect(() => {
+    setState(getState())
+    const unsubscribe = subscribeToStateChanges((newState) => {
+      setState(newState)
+    })
+    return unsubscribe
+  }, [])
+
+  if (!state) {
+>>>>>>> f3b66482f7774c42cff6be10355f1bcf487f2dff
+>>>>>>> 778ecd85492936ad34a5a3b1ed51bea1f9da59e8
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
         <div className="flex items-center gap-2 text-muted-foreground">
@@ -67,6 +106,10 @@ export default function LogActionPage() {
               <span className="text-sm text-muted-foreground">Actions Logged:</span>
               <span className="font-bold text-primary">{stats.actionCount}</span>
             </div>
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 778ecd85492936ad34a5a3b1ed51bea1f9da59e8
             {isSyncing && (
               <div className="flex items-center gap-2 ml-auto">
                 <Loader2 className="h-4 w-4 animate-spin text-primary" />
@@ -77,6 +120,19 @@ export default function LogActionPage() {
 
           {/* Eco Action Logger Component */}
           <EcoActionLogger onActionLogged={handleActionLogged} />
+<<<<<<< HEAD
+=======
+=======
+          </div>
+
+          {/* Eco Action Logger Component */}
+          <EcoActionLogger 
+            onActionLogged={(newState) => {
+              setState(newState)
+            }} 
+          />
+>>>>>>> f3b66482f7774c42cff6be10355f1bcf487f2dff
+>>>>>>> 778ecd85492936ad34a5a3b1ed51bea1f9da59e8
         </div>
       </main>
     </div>

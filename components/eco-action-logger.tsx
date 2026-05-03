@@ -32,7 +32,14 @@ import {
   AlertTriangle
 } from "lucide-react"
 import { logAction, type AppState } from "@/lib/store"
+<<<<<<< HEAD
 import { createClient } from "@/lib/supabaseClient"
+=======
+<<<<<<< HEAD
+import { createClient } from "@/lib/supabaseClient"
+=======
+>>>>>>> f3b66482f7774c42cff6be10355f1bcf487f2dff
+>>>>>>> 778ecd85492936ad34a5a3b1ed51bea1f9da59e8
 
 // Field status types for extraction confidence
 type FieldStatus = "auto" | "verify" | "blank"
@@ -913,6 +920,10 @@ export function EcoActionLogger({ onActionLogged }: EcoActionLoggerProps) {
       co2Saved: entry.co2Saved,
     })
 
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 778ecd85492936ad34a5a3b1ed51bea1f9da59e8
     // Save to Supabase
     const saveToSupabase = async () => {
       try {
@@ -944,6 +955,11 @@ export function EcoActionLogger({ onActionLogged }: EcoActionLoggerProps) {
 
     saveToSupabase()
 
+<<<<<<< HEAD
+=======
+=======
+>>>>>>> f3b66482f7774c42cff6be10355f1bcf487f2dff
+>>>>>>> 778ecd85492936ad34a5a3b1ed51bea1f9da59e8
     setLoggedEntries(prev => [entry, ...prev])
     setLastLoggedEntry(entry)
     setShowSuccess(true)
