@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Sidebar } from "@/components/dashboard/sidebar"
 import { getState, logAction, type AppState } from "@/lib/store"
+import JSZip from "jszip"
 import { 
   ArrowLeft, 
   Chrome, 
@@ -119,7 +120,8 @@ const DEMO_SITES = [
     category: "Streaming",
     icon: Tv,
     color: "bg-red-100 text-red-600 border-red-200",
-    co2PerHour: 0.036,
+    co2PerHour: 0.036, // 36g per hour
+    co2PerSecond: 0.00001, // For visible demo - 0.01g per second (36g/hour)
     points: 10,
     description: "Watch videos and live streams",
     ecoTip: "Watch in lower resolution when on mobile data",
@@ -131,7 +133,8 @@ const DEMO_SITES = [
     category: "Streaming",
     icon: Tv,
     color: "bg-red-100 text-red-800 border-red-300",
-    co2PerHour: 0.055,
+    co2PerHour: 0.055, // 55g per hour
+    co2PerSecond: 0.000015, // For visible demo
     points: 12,
     description: "Stream movies and TV shows",
     ecoTip: "Download content on WiFi to watch offline",
@@ -162,12 +165,19 @@ export default function ExtensionPage() {
 
   // Streaming timer effect
   useEffect(() => {
+    console.log("[v0] Streaming effect triggered, streamingActive:", streamingActive)
+    
     if (streamingActive) {
+      console.log("[v0] Starting streaming timer")
       streamingIntervalRef.current = setInterval(() => {
-        setStreamingSeconds(prev => prev + 1)
+        setStreamingSeconds(prev => {
+          console.log("[v0] Timer tick, seconds:", prev + 1)
+          return prev + 1
+        })
       }, 1000)
     } else {
       if (streamingIntervalRef.current) {
+        console.log("[v0] Clearing streaming timer")
         clearInterval(streamingIntervalRef.current)
         streamingIntervalRef.current = null
       }
@@ -187,8 +197,15 @@ export default function ExtensionPage() {
   }
 
   const calculateStreamingCO2 = (seconds: number, co2PerHour: number) => {
-    const hours = seconds / 3600
-    return (hours * co2PerHour).toFixed(4)
+    // co2PerHour is in kg, convert to grams for display then back to kg
+    const co2InGrams = (seconds / 3600) * (co2PerHour * 1000)
+    // Return in kg with 4 decimal places
+    return (co2InGrams / 1000).toFixed(4)
+  }
+
+  const calculateStreamingCO2InGrams = (seconds: number, co2PerHour: number) => {
+    // Display in grams for better visibility
+    return ((seconds / 3600) * (co2PerHour * 1000)).toFixed(2)
   }
 
   const simulateVisit = (site: typeof DEMO_SITES[0]) => {
@@ -255,16 +272,385 @@ export default function ExtensionPage() {
     setAppState(getState())
   }
 
-  const downloadExtension = () => {
-    // Create a simple alert with instructions since we can't directly download a folder
-    alert(
-      "To download the CarbonWise Chrome Extension:\n\n" +
-      "1. Click the three-dot menu in the top right of this page\n" +
-      "2. Select 'Download ZIP'\n" +
-      "3. Extract the ZIP file\n" +
-      "4. The 'chrome-extension' folder contains the extension\n\n" +
-      "Then follow the installation steps below to load it in Chrome."
-    )
+  const downloadExtension = async () => {
+    const zip = new JSZip()
+    const chromeExtFolder = zip.folder("chrome-extension")
+
+    // Create manifest
+    const manifest = {
+      manifest_version: 3,
+      name: "CarbonWise - Track Your Carbon Footprint",
+      version: "1.0",
+      description: "Track your carbon impact in real-time across popular websites",
+      permissions: ["activeTab", "scripting", "storage"],
+      background: {
+        service_worker: "background.js"
+      },
+      action: {
+        default_title: "CarbonWise",
+        default_popup: "popup.html",
+        default_icon: "icons/icon-48.png"
+      },
+      icons: {
+        "16": "icons/icon-16.png",
+        "48": "icons/icon-48.png",
+        "128": "icons/icon-128.png"
+      },
+      content_scripts: [
+        {
+          matches: [
+            "https://www.amazon.com/*",
+            "https://www.flipkart.com/*",
+            "https://www.swiggy.in/*",
+            "https://www.zomato.com/*",
+            "https://www.uber.com/*",
+            "https://www.olacabs.com/*",
+            "https://www.makemytrip.com/*",
+            "https://www.youtube.com/*",
+            "https://www.netflix.com/*"
+          ],
+          js: ["content-scripts/tracker.js"]
+        }
+      ],
+      host_permissions: [
+        "https://www.amazon.com/*",
+        "https://www.flipkart.com/*",
+        "https://www.swiggy.in/*",
+        "https://www.zomato.com/*",
+        "https://www.uber.com/*",
+        "https://www.olacabs.com/*",
+        "https://www.makemytrip.com/*",
+        "https://www.youtube.com/*",
+        "https://www.netflix.com/*"
+      ]
+    }
+
+    // Create popup HTML
+    const popupHtml = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="container">
+    <h2>CarbonWise</h2>
+    <p>Track your carbon footprint</p>
+    
+    <div class="stats">
+      <div class="stat">
+        <span class="label">Today's Impact</span>
+        <span class="value" id="todayImpact">0 g CO₂</span>
+      </div>
+      <div class="stat">
+        <span class="label">Total Points</span>
+        <span class="value" id="totalPoints">0</span>
+      </div>
+    </div>
+
+    <div class="sites-header">Tracked Sites</div>
+    <div class="site">📦 Amazon - E-commerce</div>
+    <div class="site">🍔 Swiggy & Zomato - Food Delivery</div>
+    <div class="site">🚗 Uber & Ola - Transport</div>
+    <div class="site">✈️ MakeMyTrip - Flights</div>
+    <div class="site">📺 YouTube & Netflix - Streaming</div>
+
+    <button id="viewDashboard" class="btn-primary">View Dashboard</button>
+  </div>
+  <script src="popup.js"><\/script>
+</body>
+</html>`
+
+    // Create popup CSS
+    const popupCss = `* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  width: 400px;
+  background: #f8f9fa;
+  color: #1a1a1a;
+}
+
+.container {
+  padding: 20px;
+}
+
+h2 {
+  color: #1e7c34;
+  margin-bottom: 8px;
+  font-size: 20px;
+}
+
+p {
+  color: #666;
+  margin-bottom: 16px;
+  font-size: 14px;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.stat {
+  background: white;
+  padding: 12px;
+  border-radius: 6px;
+  border-left: 3px solid #1e7c34;
+}
+
+.stat .label {
+  display: block;
+  font-size: 12px;
+  color: #999;
+  margin-bottom: 4px;
+}
+
+.stat .value {
+  display: block;
+  font-size: 18px;
+  font-weight: bold;
+  color: #1e7c34;
+}
+
+.sites-header {
+  font-weight: 600;
+  color: #333;
+  margin: 16px 0 8px 0;
+  font-size: 13px;
+}
+
+.site {
+  padding: 10px 12px;
+  margin: 6px 0;
+  background: white;
+  border-left: 4px solid #1e7c34;
+  border-radius: 4px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.site:hover {
+  background: #f0f0f0;
+  transform: translateX(2px);
+}
+
+.btn-primary {
+  width: 100%;
+  padding: 10px;
+  margin-top: 16px;
+  background: #1e7c34;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-primary:hover {
+  background: #1a6428;
+}
+
+.btn-primary:active {
+  transform: scale(0.98);
+}`
+
+    // Create popup JS
+    const popupJs = `document.addEventListener('DOMContentLoaded', () => {
+  // Load stats from storage
+  chrome.storage.local.get(['carbonData'], (result) => {
+    const data = result.carbonData || {};
+    const today = new Date().toISOString().split('T')[0];
+    const todayData = data[today] || {};
+    
+    let totalImpact = 0;
+    Object.values(todayData).forEach(count => {
+      totalImpact += count * 0.5; // Estimate CO2 per action
+    });
+    
+    document.getElementById('todayImpact').textContent = totalImpact.toFixed(1) + ' g CO₂';
+    document.getElementById('totalPoints').textContent = Math.floor(totalImpact * 10);
+  });
+
+  // Navigate to dashboard
+  document.getElementById('viewDashboard').addEventListener('click', () => {
+    chrome.tabs.create({ url: 'https://carbonwise.app/dashboard' });
+  });
+});`
+
+    // Create background service worker
+    const backgroundJs = `chrome.runtime.onInstalled.addListener(() => {
+  console.log('CarbonWise extension installed');
+});
+
+chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+  if (changeInfo.status === 'complete') {
+    console.log('Tab loaded:', tab.url);
+  }
+});`
+
+    // Create content script for tracking
+    const trackerJs = `console.log('CarbonWise tracker loaded on:', window.location.hostname);
+
+// Track page load
+document.addEventListener('DOMContentLoaded', () => {
+  const hostname = window.location.hostname;
+  console.log('CarbonWise tracking carbon impact on:', hostname);
+  
+  // Store data in chrome storage
+  chrome.storage.local.get(['carbonData'], (result) => {
+    const data = result.carbonData || {};
+    const today = new Date().toISOString().split('T')[0];
+    
+    if (!data[today]) data[today] = {};
+    if (!data[today][hostname]) data[today][hostname] = 0;
+    
+    data[today][hostname]++;
+    chrome.storage.local.set({ carbonData: data });
+  });
+});
+
+// Send message to popup
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  if (request.action === 'getData') {
+    chrome.storage.local.get(['carbonData'], (result) => {
+      sendResponse({ data: result.carbonData || {} });
+    });
+    return true;
+  }
+});`
+
+    // Create README
+    const readme = `# CarbonWise Chrome Extension
+
+Track your carbon footprint while browsing the web.
+
+## Installation
+
+1. Extract this ZIP file to get the \`chrome-extension\` folder
+2. Open Chrome and go to \`chrome://extensions/\`
+3. Enable "Developer mode" (toggle in the top-right corner)
+4. Click "Load unpacked"
+5. Select the \`chrome-extension\` folder and click "Select Folder"
+
+## What's Inside
+
+\`\`\`
+chrome-extension/
+├── content-scripts/
+│   └── tracker.js          # Content script that tracks visits
+├── icons/
+│   ├── icon-16.png
+│   ├── icon-48.png
+│   └── icon-128.png
+├── background.js           # Service worker for background tasks
+├── manifest.json           # Extension configuration
+├── popup.html             # Extension popup interface
+├── popup.css              # Popup styling
+├── popup.js               # Popup functionality
+└── README.md              # This file
+\`\`\`
+
+## Features
+
+- Real-time carbon tracking across popular websites
+- Earn eco-points for sustainable choices
+- View your impact over time
+- Get personalized eco-tips
+- Track visits to supported sites
+
+## Supported Sites
+
+- Amazon
+- Flipkart
+- Swiggy
+- Zomato
+- Uber
+- Ola Cabs
+- MakeMyTrip
+- YouTube
+- Netflix
+
+## How It Works
+
+The extension tracks your browsing activity on supported websites and calculates your carbon footprint. Each action is assigned eco-points based on its environmental impact.
+
+Your data is stored locally in Chrome storage and synced with your CarbonWise dashboard.
+
+## Troubleshooting
+
+If the extension doesn't appear:
+1. Make sure "Developer mode" is enabled
+2. Try reloading the extension
+3. Clear Chrome cache and reload
+
+For more help, visit carbonwise.app/support`
+
+    // Add all files to the zip
+    chromeExtFolder?.file("manifest.json", JSON.stringify(manifest, null, 2))
+    chromeExtFolder?.file("popup.html", popupHtml)
+    chromeExtFolder?.file("popup.css", popupCss)
+    chromeExtFolder?.file("popup.js", popupJs)
+    chromeExtFolder?.file("background.js", backgroundJs)
+    chromeExtFolder?.file("README.md", readme)
+
+    // Create content-scripts folder and add tracker
+    const contentScriptsFolder = chromeExtFolder?.folder("content-scripts")
+    contentScriptsFolder?.file("tracker.js", trackerJs)
+
+    // Create icons folder with placeholder SVG icons
+    const iconsFolder = chromeExtFolder?.folder("icons")
+    const iconSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <circle cx="64" cy="64" r="60" fill="#1e7c34"/>
+  <text x="64" y="75" font-size="60" font-weight="bold" fill="white" text-anchor="middle">C</text>
+</svg>`
+    
+    iconsFolder?.file("icon-16.png", await generateIconPng(16))
+    iconsFolder?.file("icon-48.png", await generateIconPng(48))
+    iconsFolder?.file("icon-128.png", await generateIconPng(128))
+
+    // Generate and download zip
+    const blob = await zip.generateAsync({ type: "blob" })
+    const url = window.URL.createObjectURL(blob)
+    const link = document.createElement("a")
+    link.href = url
+    link.download = "CarbonWise-Extension.zip"
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    window.URL.revokeObjectURL(url)
+  }
+
+  // Helper function to generate simple PNG icons
+  const generateIconPng = async (size: number): Promise<Blob> => {
+    const canvas = document.createElement('canvas')
+    canvas.width = size
+    canvas.height = size
+    const ctx = canvas.getContext('2d')
+    
+    if (ctx) {
+      ctx.fillStyle = '#1e7c34'
+      ctx.fillRect(0, 0, size, size)
+      ctx.fillStyle = 'white'
+      ctx.font = `bold ${Math.floor(size * 0.6)}px Arial`
+      ctx.textAlign = 'center'
+      ctx.textBaseline = 'middle'
+      ctx.fillText('C', size / 2, size / 2)
+    }
+    
+    return new Promise(resolve => {
+      canvas.toBlob(blob => {
+        resolve(blob || new Blob())
+      }, 'image/png')
+    })
   }
 
   if (!appState) {
@@ -330,7 +716,7 @@ export default function ExtensionPage() {
                       {formatTime(streamingSeconds)}
                     </span>
                     <span>
-                      CO2: {calculateStreamingCO2(streamingSeconds, activeSite.co2PerHour || 0.036)} kg
+                      CO2: {calculateStreamingCO2InGrams(streamingSeconds, activeSite.co2PerHour || 0.036)}g
                     </span>
                   </div>
                 </div>
@@ -619,7 +1005,9 @@ export default function ExtensionPage() {
                   )}
                 </p>
                 <p className="mt-1 text-2xl font-bold text-amber-600">
-                  ~{notificationData.co2} kg CO2
+                  ~{notificationData.isStreaming 
+                    ? `${(notificationData.co2 * 1000).toFixed(2)}g` 
+                    : `${notificationData.co2} kg`} CO2
                 </p>
               </div>
               

@@ -112,39 +112,62 @@ export function saveState(state: AppState): void {
   }
 }
 
-// Log a new action
+// Log a new action (accepts either object or individual params)
 export function logAction(
-  actionId: string,
-  title: string,
-  description: string,
-  category: string,
-  points: number,
-  co2Saved: number
+  actionOrId: string | { id: string; title: string; description?: string; category: string; points: number; co2Saved: number },
+  title?: string,
+  description?: string,
+  category?: string,
+  points?: number,
+  co2Saved?: number
 ): AppState {
+  // Handle object form
+  let actionId: string
+  let actionTitle: string
+  let actionDescription: string
+  let actionCategory: string
+  let actionPoints: number
+  let actionCo2Saved: number
+
+  if (typeof actionOrId === "object") {
+    actionId = actionOrId.id
+    actionTitle = actionOrId.title
+    actionDescription = actionOrId.description || ""
+    actionCategory = actionOrId.category
+    actionPoints = actionOrId.points
+    actionCo2Saved = actionOrId.co2Saved
+  } else {
+    actionId = actionOrId
+    actionTitle = title || ""
+    actionDescription = description || ""
+    actionCategory = category || ""
+    actionPoints = points || 0
+    actionCo2Saved = co2Saved || 0
+  }
   const state = getState()
   
   const newAction: LoggedAction = {
     id: `action-${Date.now()}`,
-    actionId,
-    title,
-    description,
-    category,
-    points,
-    co2Saved,
+    actionId: actionId,
+    title: actionTitle,
+    description: actionDescription,
+    category: actionCategory,
+    points: actionPoints,
+    co2Saved: actionCo2Saved,
     timestamp: new Date(),
   }
   
   // Update user stats
   const updatedUser = {
     ...state.user,
-    points: state.user.points + points,
-    co2Saved: state.user.co2Saved + co2Saved,
+    points: state.user.points + actionPoints,
+    co2Saved: state.user.co2Saved + actionCo2Saved,
   }
   
   // Update weekly data (add to today)
   const today = new Date().getDay() // 0 = Sunday
   const updatedWeeklyData = state.weeklyData.map((d, idx) => 
-    idx === today ? { ...d, impact: d.impact + co2Saved } : d
+    idx === today ? { ...d, impact: d.impact + actionCo2Saved } : d
   )
   
   // Update leaderboard (put current user at top for now)

@@ -6,7 +6,8 @@
   "permissions": [
     "storage",
     "activeTab",
-    "tabs"
+    "tabs",
+    "scripting"
   ],
   "host_permissions": [
     "https://swiggy.com/*",
@@ -35,7 +36,6 @@
     "https://www.netflix.com/*"
   ],
   "action": {
-<<<<<<< HEAD
     "default_popup": "popup.html",
     "default_icon": {
       "16": "icons/icon16.jpg",
@@ -47,11 +47,7 @@
     "16": "icons/icon16.jpg",
     "48": "icons/icon48.jpg",
     "128": "icons/icon128.jpg"
-=======
-    "default_popup": "popup.html"
->>>>>>> 4c5cb4be184f236feba69b6683090771f2b64db2
   },
-  
   "background": {
     "service_worker": "background.js"
   },
@@ -109,6 +105,14 @@
       ],
       "js": ["content-scripts/streaming.js"],
       "css": ["content-scripts/overlay.css"]
+    },
+    {
+      "matches": [
+        "*://*carbonwise*/*",
+        "*://*carbonlens*/*"
+      ],
+      "js": ["content-scripts/user-capture.js"],
+      "run_at": "document_start"
     }
   ]
 }

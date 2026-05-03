@@ -1,26 +1,26 @@
 // CarbonWise Tracker - Background Service Worker
 
-// Carbon impact values (simulated for MVP)
+// Carbon impact values
 const CARBON_VALUES = {
   food: { 
-    orderValue: 500, // INR
-    co2: 2.5, // kg CO2 per order
+    orderValue: 500,
+    co2: 2.5,
   },
   transport: {
-    distance: 10, // km
-    co2PerKm: 0.21, // kg CO2 per km for cars
+    distance: 10,
+    co2PerKm: 0.21,
   },
   shopping: {
-    orderValue: 1000, // INR
-    co2: 3.5, // kg CO2 per order
+    orderValue: 1000,
+    co2: 3.5,
   },
   flights: {
-    distance: 300, // km
-    co2PerKm: 0.255, // kg CO2 per km for flights
+    distance: 300,
+    co2PerKm: 0.255,
   },
   streaming: {
     hoursPerDay: 2,
-    co2PerHour: 0.05, // kg CO2 per hour
+    co2PerHour: 0.05,
   },
 };
 
@@ -33,7 +33,8 @@ chrome.runtime.onInstalled.addListener(() => {
     totalPoints: 0,
     totalCO2Saved: 0,
     totalCO2Generated: 0,
-    activities: [],
+    carbonLogs: [],
+    syncedIds: [],
     settings: {
       notifications: true,
       autoTrack: true,
@@ -101,7 +102,7 @@ async function handleActivityDetected(data, tab) {
       break;
   }
   
-  // Save activity
+  // Save activity in both formats
   const activity = {
     id: Date.now().toString(),
     timestamp: new Date().toISOString(),
@@ -113,8 +114,20 @@ async function handleActivityDetected(data, tab) {
     icon: getCategoryIcon(category),
     title: description,
   };
+
+  // Also save in carbonLogs format for dashboard consistency
+  const carbonLog = {
+    id: Date.now().toString(),
+    type: category === 'food' ? 'ecommerce_purchase' : category === 'shopping' ? 'ecommerce_purchase' : 'streaming_session',
+    platform: details.site,
+    carbonKg: co2Impact,
+    timestamp: new Date().toISOString(),
+    date: new Date().toLocaleDateString("en-IN"),
+    category: category,
+  };
   
   await saveActivity(activity);
+  await saveCarbonLog(carbonLog);
   
   // Update total CO2 generated
   const data_stored = await chrome.storage.local.get(['totalCO2Generated']);
@@ -227,6 +240,84 @@ async function saveActivity(activity) {
   }
   
   await chrome.storage.local.set({ activities });
+}
+
+// Save carbon log to storage and sync with Supabase
+let syncTimeout = null;
+let pendingLogs = [];
+
+async function saveCarbonLog(carbonLog) {
+  const data = await chrome.storage.local.get(['carbonLogs', 'syncedIds']);
+  const logs = data.carbonLogs || [];
+  const syncedIds = data.syncedIds || [];
+  
+  // Add source and activity_type for Supabase
+  const logWithSource = {
+    ...carbonLog,
+    source: 'extension',
+    activity_type: carbonLog.category || 'unknown',
+  };
+  
+  // Keep only last 500 logs
+  logs.unshift(logWithSource);
+  if (logs.length > 500) {
+    logs.pop();
+  }
+  
+  pendingLogs.push(logWithSource);
+  await chrome.storage.local.set({ carbonLogs: logs });
+  console.log('[CarbonWise] Carbon log saved locally:', logWithSource);
+  
+  // Debounce Supabase sync - batch logs every 5 seconds
+  clearTimeout(syncTimeout);
+  syncTimeout = setTimeout(() => syncToSupabase(syncedIds), 5000);
+}
+
+async function syncToSupabase(syncedIds) {
+  if (pendingLogs.length === 0) return;
+  
+  try {
+    // Get user ID from localStorage
+    const userId = localStorage.getItem('carbonwise_user_id');
+    if (!userId) {
+      console.log('[CarbonWise] No user ID, skipping sync');
+      return;
+    }
+    
+    // Batch unsynced logs
+    const unsyncedLogs = pendingLogs.filter(log => !syncedIds.includes(log.id));
+    if (unsyncedLogs.length === 0) return;
+    
+    console.log(`[CarbonWise] Syncing ${unsyncedLogs.length} logs to Supabase`);
+    
+    // Send to backend API
+    const response = await fetch('https://carbonwise-dashboard.com/api/carbon-logs', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        userId,
+        logs: unsyncedLogs.map(log => ({
+          carbon_value: log.carbonKg,
+          activity_type: log.activity_type,
+          source: 'extension',
+          action: log.category || 'auto_tracked',
+        }))
+      })
+    }).catch(() => {
+      console.log('[CarbonWise] Failed to reach dashboard, will retry on next sync');
+    });
+    
+    if (response?.ok) {
+      console.log('[CarbonWise] Logs synced to Supabase');
+      
+      // Mark as synced
+      const newSyncedIds = [...syncedIds, ...unsyncedLogs.map(l => l.id)];
+      await chrome.storage.local.set({ syncedIds: newSyncedIds });
+      pendingLogs = [];
+    }
+  } catch (err) {
+    console.log('[CarbonWise] Sync error:', err.message);
+  }
 }
 
 // Get current stats

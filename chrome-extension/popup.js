@@ -141,19 +141,48 @@ let currentTab = null;
 let currentSite = null;
 
 // Initialize popup
-document.addEventListener('DOMContentLoaded', async () => {
-  await loadStats();
-  await checkCurrentPage();
-  await loadTodayActivity();
+document.addEventListener('DOMContentLoaded', () => {
+  loadStats();
+  loadTodayActivity();
+  checkCurrentPage();
   setupEventListeners();
+  
+  // Set up event listeners
+  document.getElementById('openDashboard').addEventListener('click', (e) => {
+    e.preventDefault();
+    chrome.tabs.create({ url: 'https://carbonwise-dashboard.com/dashboard' });
+  });
+  
+  document.getElementById('settingsLink').addEventListener('click', (e) => {
+    e.preventDefault();
+    chrome.tabs.create({ url: chrome.runtime.getURL('settings.html') });
+  });
+  
+  // Refresh stats every 5 seconds
+  setInterval(() => {
+    loadStats();
+    loadTodayActivity();
+  }, 5000);
+  
+  // Sync logs to Supabase
+  syncLogsToSupabase();
 });
 
 // Load user stats from storage
 async function loadStats() {
-  const data = await chrome.storage.local.get(['totalPoints', 'totalCO2Saved', 'activities']);
+  const data = await chrome.storage.local.get(['carbonLogs']);
+  const logs = data.carbonLogs || [];
   
-  document.getElementById('totalPoints').textContent = data.totalPoints || 0;
-  document.getElementById('totalCO2').textContent = (data.totalCO2Saved || 0).toFixed(1);
+  // Calculate total carbon from all logs
+  let totalCO2 = 0;
+  logs.forEach(log => {
+    if (log.carbonKg) {
+      totalCO2 += log.carbonKg;
+    }
+  });
+  
+  document.getElementById('totalPoints').textContent = Math.floor(totalCO2 * 100); // Convert to points
+  document.getElementById('totalCO2').textContent = totalCO2.toFixed(2);
 }
 
 // Check current tab and update UI
@@ -201,8 +230,61 @@ function showTrackingPage(site) {
   
   document.getElementById('suggestionsSection').style.display = 'block';
   
+  // For ecommerce sites, add a "Log Purchase" button
+  if (site.category === 'shopping' || site.category === 'food' || site.category === 'transport') {
+    const actionButton = document.createElement('button');
+    actionButton.textContent = `Log ${site.category === 'shopping' ? 'Purchase' : site.category === 'food' ? 'Order' : 'Ride'}`;
+    actionButton.style.cssText = `
+      width: 100%;
+      padding: 8px 12px;
+      margin-top: 12px;
+      background: #059669;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+    `;
+    actionButton.addEventListener('click', () => logEcommercePurchase(site));
+    
+    suggestionList.appendChild(actionButton);
+  }
+  
   // Check for pending alerts from content script
   checkPendingAlerts();
+}
+
+function logEcommercePurchase(site) {
+  const purchaseData = {
+    type: "ecommerce_purchase",
+    platform: site.name,
+    label: Object.values(SITE_CONFIG).find(s => s.name === site.name)?.label || site.category,
+    carbonKg: site.co2PerOrder || (site.co2PerKm * 5) || 2.5, // Default estimates
+    timestamp: new Date().toISOString(),
+    date: new Date().toLocaleDateString("en-IN"),
+    id: Date.now()
+  };
+  
+  chrome.storage.local.get(["carbonLogs"], (result) => {
+    const logs = result.carbonLogs || [];
+    logs.push(purchaseData);
+    chrome.storage.local.set({ carbonLogs: logs }, () => {
+      console.log(`[CarbonWise] Purchase logged:`, purchaseData);
+      
+      // Show confirmation
+      const btn = event.target;
+      btn.textContent = '✓ Logged!';
+      btn.style.background = '#10b981';
+      setTimeout(() => {
+        btn.textContent = `Log ${site.category === 'shopping' ? 'Purchase' : 'Order'}`;
+        btn.style.background = '#059669';
+      }, 2000);
+      
+      // Update stats
+      loadStats();
+    });
+  });
 }
 
 // Show inactive state
@@ -244,34 +326,166 @@ function hideImpactAlert() {
   chrome.storage.local.remove(['pendingAlert']);
 }
 
-// Load today's activity
+// Load today's activity from extension logs
 async function loadTodayActivity() {
-  const data = await chrome.storage.local.get(['activities']);
-  const activities = data.activities || [];
+  const data = await chrome.storage.local.get(['carbonLogs']);
+  const logs = data.carbonLogs || [];
   
   // Filter for today
-  const today = new Date().toDateString();
-  const todayActivities = activities.filter(a => new Date(a.timestamp).toDateString() === today);
+  const today = new Date();
+  const todayStr = today.toLocaleDateString("en-IN");
+  const todayLogs = logs.filter(l => l.date === todayStr);
   
   const activityList = document.getElementById('activityList');
   
-  if (todayActivities.length === 0) {
-    activityList.innerHTML = '<p class="empty-state">No activity detected today</p>';
+  if (todayLogs.length === 0) {
+    activityList.innerHTML = '<p class="empty-state">No activity today</p>';
     return;
   }
   
-  activityList.innerHTML = todayActivities.slice(0, 5).map(a => `
-    <div class="activity-item">
+  // Calculate totals for today
+  let totalMinutes = 0;
+  let totalCO2 = 0;
+  
+  todayLogs.forEach(log => {
+    totalMinutes += Math.floor((log.durationSeconds || 0) / 60);
+    totalCO2 += log.carbonKg;
+  });
+  
+  // Group by category/type
+  const byCategory = {};
+  todayLogs.forEach(log => {
+    const category = log.category || log.type || 'Other';
+    if (!byCategory[category]) {
+      byCategory[category] = { count: 0, co2: 0, items: [] };
+    }
+    byCategory[category].count += 1;
+    byCategory[category].co2 += log.carbonKg;
+    byCategory[category].items.push(log);
+  });
+  
+  // Show summary
+  const summary = `
+    <div style="padding: 12px; background: #f0fdf4; border-radius: 8px; margin-bottom: 12px; border-left: 3px solid #10b981;">
+      <div style="font-size: 12px; color: #059669; font-weight: 600;">Today's Activity</div>
+      <div style="font-size: 14px; color: #047857; margin-top: 4px;">
+        ${totalCO2.toFixed(3)} kg CO₂ • ${todayLogs.length} action${todayLogs.length > 1 ? 's' : ''}
+      </div>
+    </div>
+  `;
+  
+  const categoryList = Object.entries(byCategory).map(([category, data]) => `
+    <div class="activity-item" style="padding: 10px; background: #f9fafb; border-radius: 6px; margin-bottom: 8px;">
       <div class="activity-info">
-        <div class="activity-icon ${a.type === 'positive' ? 'positive' : ''}">${a.icon}</div>
+        <div class="activity-icon" style="font-size: 16px;">${getCategoryIcon(category)}</div>
         <div class="activity-details">
-          <div class="activity-title">${a.title}</div>
-          <div class="activity-time">${formatTime(a.timestamp)}</div>
+          <div class="activity-title" style="font-size: 12px; font-weight: 600;">${formatCategoryName(category)}</div>
+          <div class="activity-time" style="font-size: 11px; color: #9ca3af;">${data.count} action${data.count > 1 ? 's' : ''}</div>
         </div>
       </div>
-      <div class="activity-impact ${a.type}">${a.type === 'positive' ? '+' : ''}${a.co2.toFixed(1)} kg</div>
+      <div style="text-align: right;">
+        <div style="font-size: 12px; color: #374151; font-weight: 500;">${data.co2.toFixed(3)} kg</div>
+      </div>
     </div>
   `).join('');
+  
+  activityList.innerHTML = summary + categoryList;
+}
+
+function getCategoryIcon(category) {
+  const icons = {
+    'streaming_session': '▶️',
+    'ecommerce_purchase': '🛍️',
+    'food': '🍕',
+    'shopping': '🛒',
+    'transport': '🚗',
+    'flights': '✈️',
+    'Other': '📡'
+  };
+  return icons[category] || icons['Other'];
+}
+
+function formatCategoryName(category) {
+  const names = {
+    'streaming_session': 'Streaming',
+    'ecommerce_purchase': 'Purchase',
+    'food': 'Food',
+    'shopping': 'Shopping',
+    'transport': 'Transport',
+    'flights': 'Flights',
+    'Other': 'Other'
+  };
+  return names[category] || category;
+}
+
+// Sync logs to Supabase
+async function syncLogsToSupabase() {
+  try {
+    // Get user ID from localStorage (set when user logs in on dashboard)
+    const userIdStored = localStorage.getItem('carbonwise_user_id');
+    if (!userIdStored) {
+      console.log('[CarbonWise] No user ID stored, skipping sync');
+      return;
+    }
+
+    // Get unsynced logs from chrome storage
+    chrome.storage.local.get(['carbonLogs', 'syncedIds'], async (result) => {
+      const logs = result.carbonLogs || [];
+      const syncedIds = result.syncedIds || [];
+
+      // Filter unsyned logs
+      const unsyncedLogs = logs.filter(log => {
+        const logId = log.id?.toString() || '';
+        return !syncedIds.includes(logId);
+      });
+
+      if (unsyncedLogs.length === 0) {
+        console.log('[CarbonWise] No unsynced logs to send');
+        return;
+      }
+
+      console.log(`[CarbonWise] Syncing ${unsyncedLogs.length} logs to Supabase`);
+
+      try {
+        // Send to backend API
+        const response = await fetch(
+          chrome.runtime.getURL('../../api/carbon-logs'),
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              userId: userIdStored,
+              logs: unsyncedLogs
+            })
+          }
+        ).catch(() => {
+          // If extension cannot reach API, try direct fetch
+          return fetch('https://carbonwise-dashboard.com/api/carbon-logs', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              userId: userIdStored,
+              logs: unsyncedLogs
+            })
+          });
+        });
+
+        if (response?.ok) {
+          console.log('[CarbonWise] Logs synced successfully');
+          
+          // Mark logs as synced
+          const syncedLogIds = unsyncedLogs.map(l => l.id?.toString() || '');
+          chrome.storage.local.set({
+            syncedIds: [...syncedIds, ...syncedLogIds]
+          });
+        }
+      } catch (err) {
+        console.log('[CarbonWise] Sync error:', err.message);
+      }
+    });
+  } catch (err) {
+    console.log('[CarbonWise] Sync setup error:', err);
+  }
 }
 
 // Format time
